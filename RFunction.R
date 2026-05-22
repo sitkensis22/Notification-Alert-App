@@ -412,13 +412,20 @@ rFunction = function(
   if(gps_accuracy){
     data$gps_accuracy_prop <- gps_accuracy_prop
   }
-  # create a count of alerts for each individual for email alert app
-  data$alertSum <- data |> as.data.frame() |> dplyr::select(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection) |>
-                  apply(1,sum)
-  # now create nAlerts variable by getting maximum number of alerts for each individual
-  data <- data |> group_by(.data[[mt_track_id_column(data)]]) |> mutate(nAlerts = max(alertSum)) |> ungroup()
-  # remove alertSum variable
-  data <- data |> dplyr::select(-alertSum)
+  # summarize number of alerts per individual and create tibble
+  alertSums <- data |> as.data.frame() |>
+               group_by(.data[[mt_track_id_column(data)]]) |>
+               summarize(mortality = sum(mortality),cluster = sum(cluster),
+               nsd = sum(nsd), voltage = sum(voltage), gps_accuracy = sum(gps_accuracy), 
+               gps_transmission = sum(gps_transmission), gps_resurrection = sum(gps_resurrection)) |>
+               mutate(mortality = ifelse(mortality > 1, 1, 0), cluster = ifelse(cluster> 1, 1, 0),
+                      nsd = ifelse(nsd > 1, 1, 0), voltage = ifelse(voltage > 1, 1, 0),
+                      gps_accuracy = ifelse(gps_accuracy > 1, 1, 0), gps_transmission = ifelse(gps_transmission > 1, 1, 0),
+                      gps_resurrection = ifelse(gps_resurrection  > 1, 1, 0)) |> ungroup() |> 
+               mutate(nAlerts = rowSums(across(c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection)))) |>
+               select(-c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection))
+  # merge nAlerts into move2 data
+  data <- left_join(data, alertSums, by = mt_track_id_column(data))
   # get index of geometry field
   geometry_index <- which(colnames(data) == "geometry")
   # now organize data set
