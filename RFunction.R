@@ -18,9 +18,9 @@ rFunction = function(
   # alert class 2 = cluster event
   cluster = FALSE, # include cluster analysis to detect events?
   cluster_radius = 50, # search radius in meters when using cluster analysis
-  cluster_window = 1, # moving window length when using cluster analysis
-  cluster_minlocations = 5, # minimum number of locations when using cluster analysis
-  cluster_duration = 5, # minimum number of cluster duration in days to include as event
+  cluster_window = 3, # moving window length when using cluster analysis
+  cluster_minlocations = 10, # minimum number of locations when using cluster analysis
+  cluster_duration = 3, # minimum number of cluster duration in days to include as event
   # alert class 3 = nsd event
   nsd = FALSE, # include net-squared displacement to detect events?
   nsd_value = 1000, # area in square meters as a minimum threshold based on daily NSD to have an event
@@ -124,7 +124,7 @@ rFunction = function(
                                                       search_radius_m = cluster_radius,
                                                       window_days = cluster_window,
                                                       clus_min_locs = cluster_minlocations,                                    
-                                                      centroid_calc = "mean",show_plots = c(FALSE, "mean"),                          
+                                                      centroid_calc = "median",show_plots = c(FALSE, "median"),                          
                                                       store_plots = FALSE, scale_plot_clus = FALSE,prbar=FALSE),
                                            error = function(e) {NULL}))
     if(isFALSE(is.null(clust_out))){
