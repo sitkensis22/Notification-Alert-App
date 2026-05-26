@@ -40,21 +40,21 @@
       "id": "cluster_window",
       "name": "Cluster moving window",
       "description": "Enter an integer for the number of days to include in the moving window for cluster analysis. Note that input will only be used when cluster trigger is activated.",
-      "defaultValue": 1,
+      "defaultValue": 3,
       "type": "INTEGER"
     },
     {
       "id": "cluster_minlocations",
       "name": "Minimum cluster locations",
       "description": "Enter an integer for the minimum number of locations to form a cluster for cluster analysis. Note that input will only be used when cluster trigger is activated.",
-      "defaultValue": 5,
+      "defaultValue": 10,
       "type": "INTEGER"
     },
     {
       "id": "cluster_duration",
       "name": "Minimum cluster duration",
       "description": "Enter an integer for the minimum duration in days as a threshold to include identified cluster events. Note that input will only be used when cluster trigger is activated.",
-      "defaultValue": 5,
+      "defaultValue": 3,
       "type": "INTEGER"
     },
     {
