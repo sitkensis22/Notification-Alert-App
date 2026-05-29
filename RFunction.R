@@ -40,6 +40,9 @@ rFunction = function(
   # alert class 7 = GPS resurrection check
   gps_resurrection = FALSE, # check if a collar has resurrected after a period on non-transmission
   gps_resurrection_duration = 5, # set the number of days that a collar has been active again after a period of non-transmission to trigger alert
+  # alert class 8 = collar release check
+  tag_release = FALSE, # check if a collar (or tag) release should have occurred given collar_prerelease_days
+  tag_prerelease_days = 5, # number of days before release date to generate an alert
   ...){
   # add unique record identifier to data
   data$FID <- 1:nrow(data)
@@ -51,6 +54,7 @@ rFunction = function(
   data$gps_accuracy <- numeric(nrow(data))
   data$gps_transmission <- numeric(nrow(data))
   data$gps_resurrection <- numeric(nrow(data))
+  data$tag_release <- numeric(nrow(data))
   # alert class 1 = manufacturer notification of mortality event
   if(mortality){
     # set warning for condition true but missing alias or value
@@ -407,6 +411,24 @@ rFunction = function(
     }
     # end of alert event checks
   }
+  # alert class 8 = collar release check
+  if(tag_release){
+      if(isFALSE(any(colnames(mt_track_data(data)) == "scheduled_detachment_date"))){
+        logger.warn("Data set does not contain the variable: scheduled_detachment_date. Please turn off tag_release switch")
+      }
+    # store current date as field
+    tag_release_check <- mt_track_data(data) |> mutate(currentDate = Sys.Date()) 
+    # now compare tag release dates to current system date
+    tag_release_check$diffTimes <- difftime(tag_release_check$scheduled_detachment_date,tag_release_check$currentDate,units = "days")
+    # now check for any of the days being either negative or less than or equal to tag_prelease_days
+    if(any(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days)){
+      # get ids for individuals that meet condition
+      tag_release_check <- tag_release_check |> filter(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days) |> as.data.frame()
+      # now apply to tag_release event field
+      data[which(mt_track_id(data) %in% tag_release_check[,mt_track_id_column(data)] & as.Date(mt_time(data)) >= (Sys.Date() - tag_prerelease_days)),]$tag_release = 1
+    }
+  }
+  # end of alert event checks 
   # append any aliases and values to data to use in Shiny app
   if(voltage){
     data$voltage_alias <- voltage_alias
@@ -425,13 +447,14 @@ rFunction = function(
                group_by(.data[[mt_track_id_column(data)]]) |>
                summarize(mortality = sum(mortality),cluster = sum(cluster),
                nsd = sum(nsd), voltage = sum(voltage), gps_accuracy = sum(gps_accuracy), 
-               gps_transmission = sum(gps_transmission), gps_resurrection = sum(gps_resurrection)) |>
+               gps_transmission = sum(gps_transmission), gps_resurrection = sum(gps_resurrection),
+               tag_release = sum(tag_release)) |>
                mutate(mortality = ifelse(mortality > 1, 1, 0), cluster = ifelse(cluster> 1, 1, 0),
-                      nsd = ifelse(nsd > 1, 1, 0), voltage = ifelse(voltage > 1, 1, 0),
-                      gps_accuracy = ifelse(gps_accuracy > 1, 1, 0), gps_transmission = ifelse(gps_transmission > 1, 1, 0),
-                      gps_resurrection = ifelse(gps_resurrection  > 1, 1, 0)) |> ungroup() |> 
-               mutate(nAlerts = rowSums(across(c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection)))) |>
-               select(-c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection))
+               nsd = ifelse(nsd > 1, 1, 0), voltage = ifelse(voltage > 1, 1, 0),
+               gps_accuracy = ifelse(gps_accuracy > 1, 1, 0), gps_transmission = ifelse(gps_transmission > 1, 1, 0),
+               gps_resurrection = ifelse(gps_resurrection  > 1, 1, 0), tag_release = ifelse(tag_release  > 1, 1, 0)) |> ungroup() |> 
+               mutate(nAlerts = rowSums(across(c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection,tag_release)))) |>
+               select(-c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection,tag_release))
   # merge nAlerts into move2 data
   data <- left_join(data, alertSums, by = mt_track_id_column(data))
   # get index of geometry field
