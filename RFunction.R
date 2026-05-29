@@ -132,8 +132,9 @@ rFunction = function(
         # add cluster ID field to data
         data$clus_ID <- clust_out[[1]]$clus_ID
         # filter data based on cluster IDs in clust_out[[2]]
-        cluster_check <- data |> filter(clus_ID %in% clust_out[[2]]$clus_ID) |> 
-          dplyr::select(-clus_ID)
+        cluster_check <- data |> filter(.data[[mt_track_id_column(data)]] %in% clust_out[[2]]$AID) 
+        # now filter out locations that are not in clusters
+        cluster_check <- cluster_check |> slice(-which(is.na(cluster_check$clus_ID))) |> dplyr::select(-clus_ID)
         # remove clus_ID from data
         data <- data |> dplyr::select(-clus_ID)
         # now set the records that have a cluster event to 1
