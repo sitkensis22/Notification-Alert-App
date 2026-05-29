@@ -154,6 +154,20 @@
         "description": "Enter an integer value for the duration in days to trigger a GPS resurrection alert. This is the duration that the collar has become active after a GPS transmission gap has occurred. Note that input will only be used when the GPS resurrection trigger is activiated.",
         "defaultValue": 5,
         "type": "INTEGER"
+      },
+      {
+        "id": "tag_release",
+        "name": "Set tag scheduled detachment date alert trigger?",
+        "description": "Please check this box if you want to check for scheduled detachment events.",
+        "defaultValue": false,
+        "type": "CHECKBOX"
+      },   
+      {
+        "id": "tag_prerelease_days",
+        "name": "Scheduled tag detachment prelease value",
+        "description": "Enter an integer value for the number of days before tage release date to generate an alert. Note that input will only be used when the tag release trigger is activiated.",
+        "defaultValue": 5,
+        "type": "INTEGER"
       }
   ],
   "dependencies": {
