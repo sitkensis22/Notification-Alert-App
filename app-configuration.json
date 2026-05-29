@@ -22,5 +22,5 @@
     "gps_resurrection": true,
     "gps_resurrection_duration": "5",
     "tag_release": true,
-    "tag_release_days": "5"
+    "tag_prerelease_days": "5"
 }
