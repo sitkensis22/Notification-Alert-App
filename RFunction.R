@@ -143,7 +143,7 @@ rFunction = function(
   }
   # alert class 3 = NSD event
   if(nsd){
-   # get UTM zone for data
+  # get UTM zone for data
     data_centroid <- data |> st_combine() |> st_centroid() |> st_coordinates() |>
       as.vector()
     # determine UTM zone
@@ -181,15 +181,17 @@ rFunction = function(
     if(any(amt_max_daily_nsd$maxNSD < nsd_value)){
       # now filter amt_max_daily by nsd_value 
       amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < nsd_value & maxNSD > 0)
+      if(nrow(amt_max_daily_nsd) > 0){
       # check of time duration across day_index and individual
       amt_final_check <- amt_max_daily_nsd |> group_by(id,day_index) |> 
-        summarize(timeDiff = diff(range(t_), units = "days"))
+        summarize(timeDiff = diff(range(t_, na.rm = TRUE), units = "days"))
       # remove any amt_max_daily_nsd where timeDiff is less than nsd_
-      if(any(amt_final_check$timeDiff < nsd_duration)){
-        amt_final_check <- amt_final_check |> filter(timeDiff < nsd_duration)
+      if(any(as.numeric(amt_final_check$timeDiff) < nsd_duration)){
+        amt_final_check <- amt_final_check |> filter(as.numeric(timeDiff) < nsd_duration)
       }
       # now remove the individual and day_index from the amt_max_daily_nsd
       amt_max_daily_nsd <- amt_max_daily_nsd |> slice(-which(id %in% amt_final_check$id & day_index %in% amt_final_check$day_index))
+      }
       if(nrow(amt_max_daily_nsd) > 0){
       # now set the records that have a NSD event to 1
         data$nsd[which(data$FID %in% amt_max_daily_nsd$FID)] = 1
