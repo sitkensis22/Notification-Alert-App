@@ -20,7 +20,6 @@ rFunction = function(
   cluster_radius = 50, # search radius in meters when using cluster analysis
   cluster_window = 3, # moving window length when using cluster analysis
   cluster_minlocations = 10, # minimum number of locations when using cluster analysis
-  cluster_duration = 3, # minimum number of cluster duration in days to include as event
   # alert class 3 = nsd event
   nsd = FALSE, # include net-squared displacement to detect events?
   nsd_value = 1000, # area in square meters as a minimum threshold based on daily NSD to have an event
@@ -128,12 +127,6 @@ rFunction = function(
                                                       store_plots = FALSE, scale_plot_clus = FALSE,prbar=FALSE),
                                            error = function(e) {NULL}))
     if(isFALSE(is.null(clust_out))){
-      clust_out[[2]]$clus_dur_day <- clust_out[[2]]$clus_dur_hr
-      units(clust_out[[2]]$clus_dur_day) <- "days"
-      # check for minimum number of cluster days
-      if(any(clust_out[[2]]$clus_dur_day > cluster_duration)){
-        # filter for minimum number of cluster days
-        clust_out[[2]] <- clust_out[[2]] |> filter(clus_dur_day > cluster_duration)
         # save cluster points to appArtefactPath
         write.csv(clust_out[[2]], file = appArtifactPath("cluster_output.csv"), row.names = FALSE)
         # add cluster ID field to data
@@ -145,7 +138,6 @@ rFunction = function(
         data <- data |> dplyr::select(-clus_ID)
         # now set the records that have a cluster event to 1
         data$cluster[which(data$FID %in% cluster_check$FID)] = 1
-      }
     }
   }
   # alert class 3 = NSD event
