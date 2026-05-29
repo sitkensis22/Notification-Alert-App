@@ -43,8 +43,6 @@ The App generates an artefact called 'cluster_output.csv' when cluster events ar
 
 **Minimum cluster locations (`cluster_minlocations`):** This integer input defines the minimum number of locations to form a cluster in cluster analyses. Note that the input will only be used when cluster trigger is activated.
 
-**Minimum cluster duration (`cluster_duration`):** This integer input defines the mimimum duration in days as a threshold to include idenfied cluster events. This is useful when using cluster analysis to detect mortalties when many short duration clusters are present. Note that the input will only be used when cluster trigger is activated.
-
 **Set net-squared displacement alert (`nsd`):** This logical input acts as a switch to turn on maximum net-squared displacement event monitoring.
 
 **Threshold for maximum net-squared displacement (`nsd_value`):** This numeric input defines the threshold in square meters for the maximum net-squared displacement to trigger an event. Note that the input will only be used when net-squared displacement trigger is activated.
