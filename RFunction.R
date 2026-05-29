@@ -424,8 +424,10 @@ rFunction = function(
     if(any(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days)){
       # get ids for individuals that meet condition
       tag_release_check <- tag_release_check |> filter(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days) |> as.data.frame()
+      # create check date to account for prelease days
+      check_date <- as.Date(Sys.Date() - as.numeric(tag_prerelease_days))
       # now apply to tag_release event field
-      data[which(mt_track_id(data) %in% tag_release_check[,mt_track_id_column(data)] & as.Date(mt_time(data)) >= (Sys.Date() - tag_prerelease_days)),]$tag_release = 1
+      data[which(mt_track_id(data) %in% tag_release_check[,mt_track_id_column(data)] & as.Date(mt_time(data)) >= check_date),]$tag_release = 1
     }
   }
   # end of alert event checks 
