@@ -51,13 +51,6 @@
       "type": "INTEGER"
     },
     {
-      "id": "cluster_duration",
-      "name": "Minimum cluster duration",
-      "description": "Enter an integer for the minimum duration in days as a threshold to include identified cluster events. Note that input will only be used when cluster trigger is activated.",
-      "defaultValue": 3,
-      "type": "INTEGER"
-    },
-    {
       "id": "nsd",
       "name": "Set net-squared displacement alert trigger?",
       "description": "Please check this box if you want to check for maximum net-squared displacement events in based on specific parameters.",
