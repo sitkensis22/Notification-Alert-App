@@ -143,7 +143,7 @@ rFunction = function(
   }
   # alert class 3 = NSD event
   if(nsd){
-    # get UTM zone for data
+   # get UTM zone for data
     data_centroid <- data |> st_combine() |> st_centroid() |> st_coordinates() |>
       as.vector()
     # determine UTM zone
@@ -152,10 +152,10 @@ rFunction = function(
     data_utm <- data |> st_transform(st_crs(utm_crs))
     # create amt dataset
     amt_track <- data_utm |> mutate(x = st_coordinates(data_utm)[,1], y = st_coordinates(data_utm)[,2],
-                                    id = mt_track_id(data_utm), t = mt_time(data_utm)) |> 
+                                    id = mt_track_id(data_utm), t = mt_time(data_utm), FID = FID) |> 
       st_drop_geometry() |> 
       amt::make_track(.x = x, .y = y, .t = t,
-                      id = id,crs = utm_crs)
+                      id = id, FID = FID)
     # create variable for user-defined number of days
     day_interval <- ifelse(nsd_duration > 1, paste(nsd_duration,"days"), paste(nsd_duration,"day"))
     # need to check for individuals that have a shorter duration of data than the day interval
@@ -179,8 +179,21 @@ rFunction = function(
       ungroup() 
     # conduct check of nsd minimum area for event
     if(any(amt_max_daily_nsd$maxNSD < nsd_value)){
+      # now filter amt_max_daily by nsd_value 
+      amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < nsd_value & maxNSD > 0)
+      # check of time duration across day_index and individual
+      amt_final_check <- amt_max_daily_nsd |> group_by(id,day_index) |> 
+        summarize(timeDiff = diff(range(t_), units = "days"))
+      # remove any amt_max_daily_nsd where timeDiff is less than nsd_
+      if(any(amt_final_check$timeDiff < nsd_duration)){
+        amt_final_check <- amt_final_check |> filter(timeDiff < nsd_duration)
+      }
+      # now remove the individual and day_index from the amt_max_daily_nsd
+      amt_max_daily_nsd <- amt_max_daily_nsd |> slice(-which(id %in% amt_final_check$id & day_index %in% amt_final_check$day_index))
+      if(nrow(amt_max_daily_nsd) > 0){
       # now set the records that have a NSD event to 1
-      data$nsd[which(amt_max_daily_nsd$maxNSD < nsd_value)] = 1
+        data$nsd[which(data$FID %in% amt_max_daily_nsd$FID)] = 1
+      }
     }
   }  
   # alert class 4 = voltage event
