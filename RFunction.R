@@ -459,6 +459,8 @@ rFunction = function(
                select(-c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection,tag_release))
   # merge nAlerts into move2 data
   data <- left_join(data, alertSums, by = mt_track_id_column(data))
+  # calculate consecutive distance between locations
+  data$dist_consecutive <- mt_distance(data, units = "m")
   # get index of geometry field
   geometry_index <- which(colnames(data) == "geometry")
   # now organize data set
