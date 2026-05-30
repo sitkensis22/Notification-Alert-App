@@ -348,7 +348,7 @@ rFunction = function(
           ungroup() |> slice(-1)
       }
     # check for time differences greater 
-    if(any(gps_transmission_check$time_diff > as.numeric(gps_transmission_gap), na.rm = TRUE)){
+    if(any(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap), na.rm = TRUE)){
       # filter data by IDs 
       gps_transmission_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap)))
       # now set the records that have a gps_transmission event to 1
@@ -371,7 +371,7 @@ rFunction = function(
           ungroup() |> slice(-1)
       }
     # check for time differences greater than gps_transmission_gap
-    if(any(gps_transmission_check$time_diff > as.numeric(gps_transmission_gap), na.rm = TRUE)){
+    if(any(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap), na.rm = TRUE)){
       # filter data by IDs 
       gps_resurrection_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap))) 
       # need to get max indices of transmission gap for those that had events
