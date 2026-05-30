@@ -186,18 +186,7 @@ rFunction = function(
       # now filter amt_max_daily by nsd_value 
       amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < as.numeric(nsd_value) & maxNSD > 0)
       if(nrow(amt_max_daily_nsd) > 0){
-      # check of time duration across day_index and individual
-      amt_final_check <- amt_max_daily_nsd |> group_by(id,day_index) |> 
-        summarize(timeDiff = diff(range(t_, na.rm = TRUE), units = "days"),.groups = "drop_last")
-      # remove any amt_max_daily_nsd where timeDiff is less than nsd_
-      if(any(as.numeric(amt_final_check$timeDiff) < as.numeric(nsd_duration))){
-        amt_final_check <- amt_final_check |> filter(as.numeric(timeDiff) < as.numeric(nsd_duration))
-      }
-      # now remove the individual and day_index from the amt_max_daily_nsd
-      amt_max_daily_nsd <- amt_max_daily_nsd |> slice(-which(id %in% amt_final_check$id & day_index %in% amt_final_check$day_index))
-      }
-      if(nrow(amt_max_daily_nsd) > 0){
-      # now set the records that have a NSD event to 1
+        # now set the records that have a NSD event to 1
         data$nsd[which(data$FID %in% amt_max_daily_nsd$FID)] = 1
       }
     }
