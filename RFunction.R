@@ -133,16 +133,12 @@ rFunction = function(
     if(isFALSE(is.null(clust_out))){
         # save cluster points to appArtefactPath
         write.csv(clust_out[[2]], file = appArtifactPath("cluster_output.csv"), row.names = FALSE)
-        # add cluster ID field to data
-        data$clus_ID <- clust_out[[1]]$clus_ID
-        # filter data based on cluster IDs in clust_out[[2]]
-        cluster_check <- data |> filter(.data[[mt_track_id_column(data)]] %in% clust_out[[2]]$AID) 
-        # now filter out locations that are not in clusters
-        cluster_check <- cluster_check |> slice(-which(is.na(cluster_check$clus_ID))) |> dplyr::select(-clus_ID)
+       # add cluster ID field to data
+        data <- left_join(data,clust_out[[1]][,c("FID","clus_ID")], by = "FID")
+        # now set the records that have a cluster event to 1
+        data$cluster[which(is.na(data$clus_ID)==FALSE)] = 1
         # remove clus_ID from data
         data <- data |> dplyr::select(-clus_ID)
-        # now set the records that have a cluster event to 1
-        data$cluster[which(data$FID %in% cluster_check$FID)] = 1
     }
   }
   # alert class 3 = NSD event
