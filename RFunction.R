@@ -124,9 +124,9 @@ rFunction = function(
                                        Lat = Y)
     # fix sequential cluster algorithm using GPSeq_clus
     clust_out <- suppressWarnings(tryCatch(GPSeq_clus(dat = clust_data,
-                                                      search_radius_m = cluster_radius,
-                                                      window_days = cluster_window,
-                                                      clus_min_locs = cluster_minlocations,                                    
+                                                      search_radius_m = as.numeric(cluster_radius),
+                                                      window_days = as.numeric(cluster_window),
+                                                      clus_min_locs = as.numeric(cluster_minlocations),                                    
                                                       centroid_calc = "median",show_plots = c(FALSE, "median"),                          
                                                       store_plots = FALSE, scale_plot_clus = FALSE,prbar=FALSE),
                                            error = function(e) {NULL}))
@@ -161,11 +161,11 @@ rFunction = function(
       amt::make_track(.x = x, .y = y, .t = t,
                       id = id, FID = FID)
     # create variable for user-defined number of days
-    day_interval <- ifelse(nsd_duration > 1, paste(nsd_duration,"days"), paste(nsd_duration,"day"))
+    day_interval <- ifelse(as.numeric(nsd_duration) > 1, paste(as.numeric(nsd_duration),"days"), paste(as.numeric(nsd_duration),"day"))
     # need to check for individuals that have a shorter duration of data than the day interval
     amt_track <- amt_track |> group_by(id) |> mutate(date_range = max(timestamp) - min(timestamp)) |> ungroup()
     # now filter out individuals where data_range is less than day_interval
-    if(any(as.numeric(amt_track$date_range) <= nsd_duration)){
+    if(any(as.numeric(amt_track$date_range) <= as.numeric(nsd_duration))){
       amt_track <- amt_track |> filter(as.numeric(date_range) > nsd_duration)
     }
     # create index for group over a user-defined number of days
@@ -182,16 +182,16 @@ rFunction = function(
       mutate(maxNSD = max(nsd_, na.rm=TRUE)) |> 
       ungroup() 
     # conduct check of nsd minimum area for event
-    if(any(amt_max_daily_nsd$maxNSD < nsd_value)){
+    if(any(amt_max_daily_nsd$maxNSD < as.numeric(nsd_value))){
       # now filter amt_max_daily by nsd_value 
-      amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < nsd_value & maxNSD > 0)
+      amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < as.numeric(nsd_value) & maxNSD > 0)
       if(nrow(amt_max_daily_nsd) > 0){
       # check of time duration across day_index and individual
       amt_final_check <- amt_max_daily_nsd |> group_by(id,day_index) |> 
         summarize(timeDiff = diff(range(t_, na.rm = TRUE), units = "days"))
       # remove any amt_max_daily_nsd where timeDiff is less than nsd_
-      if(any(as.numeric(amt_final_check$timeDiff) < nsd_duration)){
-        amt_final_check <- amt_final_check |> filter(as.numeric(timeDiff) < nsd_duration)
+      if(any(as.numeric(amt_final_check$timeDiff) < as.numeric(nsd_duration))){
+        amt_final_check <- amt_final_check |> filter(as.numeric(timeDiff) < as.numeric(nsd_duration))
       }
       # now remove the individual and day_index from the amt_max_daily_nsd
       amt_max_daily_nsd <- amt_max_daily_nsd |> slice(-which(id %in% amt_final_check$id & day_index %in% amt_final_check$day_index))
@@ -222,9 +222,9 @@ rFunction = function(
           pivot_longer(cols = all_of(voltage_alias), 
                        names_to = "alias", 
                        values_to = "alias_vals") |> 
-          mutate(alias_vals = set_units(alias_vals, mV)) |>
+          mutate(alias_vals = set_units(as.numeric(alias_vals), mV)) |>
           group_by(mt_track_id_column(data)) |> 
-          filter(alias_vals <= set_units(voltage_value, mV)) |>
+          filter(alias_vals <= set_units(as.numeric(voltage_value), mV)) |>
           mutate(tag_voltage = alias_vals) |> 
           dplyr::select(-alias,-alias_vals) |>
           ungroup()  
@@ -235,7 +235,7 @@ rFunction = function(
             pivot_longer(cols = all_of(voltage_alias), 
                          names_to = "alias", 
                          values_to = "alias_vals") |> 
-            mutate(alias_vals = set_units(alias_vals, mV)) |>
+            mutate(alias_vals = set_units(as.numeric(alias_vals), mV)) |>
             group_by(mt_track_id_column(data)) |> 
             filter(alias_vals <= set_units(as.numeric(quantile(alias_vals, probs = voltage_value, na.rm = TRUE)), mV)) |>
             mutate(tag_voltage = alias_vals) |> 
@@ -249,7 +249,7 @@ rFunction = function(
           pivot_longer(cols = all_of(voltage_alias), 
                        names_to = "alias", 
                        values_to = "alias_vals") |> 
-          mutate(alias_vals = set_units(alias_vals, mV)) |>
+          mutate(alias_vals = set_units(as.numeric(alias_vals), mV)) |>
           group_by(mt_track_id_column(data)) |> 
           filter(alias_vals <= set_units(as.numeric(quantile(alias_vals, probs = 0.25, na.rm = TRUE)), mV)) |>
           mutate(tag_voltage = alias_vals) |> 
@@ -336,7 +336,7 @@ rFunction = function(
       prop_bad_locs <- gps_accuracy_sum |> group_by(.data[[mt_track_id_column(data)]]) |>
         summarise(prop_poor = rowCount/totalCount)
       # check if any prop_poor is above threshold
-      if(any(prop_bad_locs$prop_poor>gps_accuracy_prop)){
+      if(any(prop_bad_locs$prop_poor > as.numeric(gps_accuracy_prop))){
         prop_bad_ids <- prop_bad_locs |> slice(which(prop_bad_locs$prop_poor>gps_accuracy_prop)) |>
           # dplyr::select(.data[[mt_track_id_column(data)]])
           dplyr::select(all_of(mt_track_id_column(data)))
@@ -363,9 +363,9 @@ rFunction = function(
           ungroup() |> slice(-1)
       }
     # check for time differences greater 
-    if(any(gps_transmission_check$time_diff>gps_transmission_gap, na.rm = TRUE)){
+    if(any(gps_transmission_check$time_diff > as.numeric(gps_transmission_gap), na.rm = TRUE)){
       # filter data by IDs 
-      gps_transmission_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff>=gps_transmission_gap))
+      gps_transmission_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap)))
       # now set the records that have a gps_transmission event to 1
       data$gps_transmission[which(data$FID %in% gps_transmission_check$FID)] = 1
     }
@@ -386,9 +386,9 @@ rFunction = function(
           ungroup() |> slice(-1)
       }
     # check for time differences greater than gps_transmission_gap
-    if(any(gps_transmission_check$time_diff>gps_transmission_gap, na.rm = TRUE)){
+    if(any(gps_transmission_check$time_diff > as.numeric(gps_transmission_gap), na.rm = TRUE)){
       # filter data by IDs 
-      gps_resurrection_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff>=gps_transmission_gap)) 
+      gps_resurrection_check <- gps_transmission_check |> slice(which(gps_transmission_check$time_diff >= as.numeric(gps_transmission_gap))) 
       # need to get max indices of transmission gap for those that had events
       max_times_resurrection <- gps_resurrection_check |> group_by(.data[[mt_track_id_column(gps_resurrection_check)]]) |>
         summarize(maxTimes = max(.data[[mt_time_column(gps_resurrection_check)]], na.rm = TRUE),
@@ -400,7 +400,7 @@ rFunction = function(
                   maxFID = max(FID,na.rm=TRUE)) |> as.data.frame() 
       max_times_resurrection$timediff = as.numeric(difftime( max_times_data$maxTimes,max_times_resurrection$maxTimes, 
                                                              units = "days"))
-      if(any(max_times_resurrection$timediff>gps_resurrection_duration, na.rm = TRUE)){
+      if(any(max_times_resurrection$timediff > as.numeric(gps_resurrection_duration), na.rm = TRUE)){
         # filter data by IDs 
         max_times_resurrection <- max_times_resurrection |> slice(which(max_times_resurrection$timediff>gps_resurrection_duration))
         # now loop over individuals to populate resurrection events to 1
@@ -421,9 +421,9 @@ rFunction = function(
     # now compare tag release dates to current system date
     tag_release_check$diffTimes <- difftime(tag_release_check$scheduled_detachment_date,tag_release_check$currentDate,units = "days")
     # now check for any of the days being either negative or less than or equal to tag_prelease_days
-    if(any(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days)){
+    if(any(as.numeric(tag_release_check$diffTimes) <= as.numeric(tag_prerelease_days))){
       # get ids for individuals that meet condition
-      tag_release_check <- tag_release_check |> filter(as.numeric(tag_release_check$diffTimes) <= tag_prerelease_days) |> as.data.frame()
+      tag_release_check <- tag_release_check |> filter(as.numeric(tag_release_check$diffTimes) <= as.numeric(tag_prerelease_days)) |> as.data.frame()
       # create check date to account for prelease days
       check_date <- as.Date(Sys.Date() - as.numeric(tag_prerelease_days))
       # now apply to tag_release event field
@@ -438,11 +438,11 @@ rFunction = function(
       data$voltage_value <- ""
     }else
       if(isFALSE(is.null(voltage_value))){
-        data$voltage_value <- voltage_value
+        data$voltage_value <- as.numeric(voltage_value)
       }
   }  
   if(gps_accuracy){
-    data$gps_accuracy_prop <- gps_accuracy_prop
+    data$gps_accuracy_prop <- as.numeric(gps_accuracy_prop)
   }
   # summarize number of alerts per individual and create tibble
   alertSums <- data |> as.data.frame() |>
