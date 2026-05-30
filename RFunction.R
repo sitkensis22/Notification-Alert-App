@@ -387,7 +387,7 @@ rFunction = function(
                                                              units = "days"))
       if(any(max_times_resurrection$timediff >= as.numeric(gps_resurrection_duration), na.rm = TRUE)){
         # filter data by IDs 
-        max_times_resurrection <- max_times_resurrection |> slice(which(max_times_resurrection$timediff >= gps_resurrection_duration))
+        max_times_resurrection <- max_times_resurrection |> slice(which(max_times_resurrection$timediff >= as.numeric(gps_resurrection_duration))))
         # now loop over individuals to populate resurrection events to 1
         for(i in 1:nrow(max_times_resurrection)){
           data[data$FID %in% c(max_times_resurrection$maxFID[i]:max_times_data$maxFID[i]),]$gps_resurrection = 1
@@ -436,10 +436,10 @@ rFunction = function(
                nsd = sum(nsd), voltage = sum(voltage), gps_accuracy = sum(gps_accuracy), 
                gps_transmission = sum(gps_transmission), gps_resurrection = sum(gps_resurrection),
                tag_release = sum(tag_release)) |>
-               mutate(mortality = ifelse(mortality > 1, 1, 0), cluster = ifelse(cluster> 1, 1, 0),
-               nsd = ifelse(nsd > 1, 1, 0), voltage = ifelse(voltage > 1, 1, 0),
-               gps_accuracy = ifelse(gps_accuracy > 1, 1, 0), gps_transmission = ifelse(gps_transmission > 1, 1, 0),
-               gps_resurrection = ifelse(gps_resurrection  > 1, 1, 0), tag_release = ifelse(tag_release  > 1, 1, 0)) |> ungroup() |> 
+               mutate(mortality = ifelse(mortality >= 1, 1, 0), cluster = ifelse(cluster >= 1, 1, 0),
+               nsd = ifelse(nsd >= 1, 1, 0), voltage = ifelse(voltage >= 1, 1, 0),
+               gps_accuracy = ifelse(gps_accuracy >= 1, 1, 0), gps_transmission = ifelse(gps_transmission >= 1, 1, 0),
+               gps_resurrection = ifelse(gps_resurrection >= 1, 1, 0), tag_release = ifelse(tag_release >= 1, 1, 0)) |> ungroup() |> 
                mutate(nAlerts = rowSums(across(c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection,tag_release)))) |>
                select(-c(mortality,cluster,nsd,voltage,gps_accuracy,gps_transmission,gps_resurrection,tag_release))
   # merge nAlerts into move2 data
