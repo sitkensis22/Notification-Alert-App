@@ -187,8 +187,8 @@ rFunction = function(
       amt_max_daily_nsd <- amt_max_daily_nsd |> filter(maxNSD < as.numeric(nsd_value) & maxNSD > 0)
       if(nrow(amt_max_daily_nsd) > 0){
       # check of time duration across day_index and individual
-      amt_final_check <- amt_max_daily_nsd |> group_by(id,day_index) |> 
-        summarize(timeDiff = diff(range(t_, na.rm = TRUE), units = "days"))
+      amt_final_check <- amt_max_daily_nsd |> 
+        summarize(timeDiff = diff(range(t_, na.rm = TRUE), units = "days"),.by = c(id, day_index))
       # remove any amt_max_daily_nsd where timeDiff is less than nsd_
       if(any(as.numeric(amt_final_check$timeDiff) < as.numeric(nsd_duration))){
         amt_final_check <- amt_final_check |> filter(as.numeric(timeDiff) < as.numeric(nsd_duration))
